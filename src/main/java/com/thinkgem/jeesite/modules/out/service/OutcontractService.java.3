@@ -1,0 +1,53 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.out.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.thinkgem.jeesite.common.service.TreeService;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.out.entity.Outcontract;
+import com.thinkgem.jeesite.modules.out.dao.OutcontractDao;
+
+/**
+ * 外包登记Service
+ * @author LKY
+ * @version 2016-11-22
+ */
+@Service
+@Transactional(readOnly = true)
+public class OutcontractService extends TreeService<OutcontractDao, Outcontract> {
+
+	@Autowired
+	private OutcontractDao outcontractDao;
+	public List<Outcontract> findList1(){
+	return 	 outcontractDao.findList1();
+	}
+	public Outcontract get(String id) {
+		return super.get(id);
+	}
+	
+	public List<Outcontract> findList(Outcontract outcontract) {
+		if (StringUtils.isNotBlank(outcontract.getParentIds())){
+			outcontract.setParentIds(","+outcontract.getParentIds()+",");
+		}
+		return super.findList(outcontract);
+	}
+	
+	@Transactional(readOnly = false)
+	public void save(Outcontract outcontract) {
+		super.save(outcontract);
+	}
+	
+	@Transactional(readOnly = false)
+	public void delete(Outcontract outcontract) {
+		super.delete(outcontract);
+	}
+
+	public String getSumAmount(int parentId){return outcontractDao.getSumAmount(parentId);}
+}

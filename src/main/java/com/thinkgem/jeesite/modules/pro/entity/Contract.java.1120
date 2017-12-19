@@ -1,0 +1,170 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.pro.entity;
+
+import com.thinkgem.jeesite.common.persistence.TreeEntity;
+import org.hibernate.validator.constraints.Length;
+import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import com.thinkgem.jeesite.common.persistence.DataEntity;
+
+/**
+ * 合同登记Entity
+ * @author cdoublej
+ * @version 2016-10-08
+ */
+public class Contract extends TreeEntity<Contract> {
+	
+	private static final long serialVersionUID = 1L;
+	private Contract parent;
+	private String parentIds;
+	private String name;		// 合同名称
+	private Integer contractTypeId;		// 合同类型编号
+	private Integer projectId;		// 所属项目编号
+	private Integer amount;		// 合同总金额
+	private Date startTime;		// 开始时间
+	private Date endTime;		// 结束时间
+	private Date signTime;		// 签订时间
+	private String aPrincipal;		// 甲方联系人
+	private String aPhone;		// 甲方联系人电话
+	private String aCompany;		// 甲方单位名称
+	private String payClause;		// 支付条款
+	private String checkClause;		// 验收条款
+
+	
+	public Contract() {
+		super();
+	}
+
+	public Contract(String id){
+		super(id);
+	}
+
+	@Length(min=0, max=20, message="合同名称长度必须介于 0 和 20 之间")
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public Integer getContractTypeId() {
+		return contractTypeId;
+	}
+
+	public void setContractTypeId(Integer contractTypeId) {
+		this.contractTypeId = contractTypeId;
+	}
+	
+	public Integer getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Integer projectId) {
+		this.projectId = projectId;
+	}
+	
+	public Integer getAmount() {
+		return amount;
+	}
+
+	public void setAmount(Integer amount) {
+		this.amount = amount;
+	}
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	public Date getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Date startTime) {
+		this.startTime = startTime;
+	}
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	public Date getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Date endTime) {
+		this.endTime = endTime;
+	}
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	public Date getSignTime() {
+		return signTime;
+	}
+
+	public void setSignTime(Date signTime) {
+		this.signTime = signTime;
+	}
+	
+	@Length(min=0, max=20, message="甲方联系人长度必须介于 0 和 20 之间")
+	public String getAPrincipal() {
+		return aPrincipal;
+	}
+
+	public void setAPrincipal(String aPrincipal) {
+		this.aPrincipal = aPrincipal;
+	}
+	
+	@Length(min=0, max=20, message="甲方联系人电话长度必须介于 0 和 20 之间")
+	public String getAPhone() {
+		return aPhone;
+	}
+
+	public void setAPhone(String aPhone) {
+		this.aPhone = aPhone;
+	}
+	
+	@Length(min=0, max=50, message="甲方单位名称长度必须介于 0 和 50 之间")
+	public String getACompany() {
+		return aCompany;
+	}
+
+	public void setACompany(String aCompany) {
+		this.aCompany = aCompany;
+	}
+	
+	@Length(min=0, max=255, message="支付条款长度必须介于 0 和 255 之间")
+	public String getPayClause() {
+		return payClause;
+	}
+
+	public void setPayClause(String payClause) {
+		this.payClause = payClause;
+	}
+	
+	@Length(min=0, max=255, message="验收条款长度必须介于 0 和 255 之间")
+	public String getCheckClause() {
+		return checkClause;
+	}
+
+	public void setCheckClause(String checkClause) {
+		this.checkClause = checkClause;
+	}
+
+
+
+	public String getParentIds() {
+		return parentIds;
+	}
+
+	public void setParentIds(String parentIds) {
+		this.parentIds = parentIds;
+	}
+
+	public Contract getParent() {
+		return parent;
+	}
+
+	public void setParent(Contract parent) {
+		this.parent = parent;
+	}
+	public String getParentId() {
+		return parent != null && parent.getId() != null ? parent.getId() : "0";
+	}
+}

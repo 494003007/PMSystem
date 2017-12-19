@@ -1,0 +1,52 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.pro.service;
+
+import java.util.List;
+
+import com.thinkgem.jeesite.common.service.TreeService;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.service.CrudService;
+import com.thinkgem.jeesite.modules.pro.entity.Contract;
+import com.thinkgem.jeesite.modules.pro.dao.ContractDao;
+
+/**
+ * 合同登记Service
+ * @author cdoublej
+ * @version 2016-10-08
+ */
+@Service
+@Transactional(readOnly = true)
+public class ContractService extends TreeService<ContractDao, Contract> {
+
+	public Contract get(String id) {
+		return super.get(id);
+	}
+	
+	public List<Contract> findList(Contract contract) {
+		if (StringUtils.isNotBlank(contract.getParentIds())){
+			contract.setParentIds(","+contract.getParentIds()+",");
+		}
+		return super.findList(contract);
+	}
+	
+	public Page<Contract> findPage(Page<Contract> page, Contract contract) {
+		return super.findPage(page, contract);
+	}
+	
+	@Transactional(readOnly = false)
+	public void save(Contract contract) {
+		super.save(contract);
+	}
+	
+	@Transactional(readOnly = false)
+	public void delete(Contract contract) {
+		super.delete(contract);
+	}
+	
+}

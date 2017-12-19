@@ -1,0 +1,82 @@
+package com.thinkgem.jeesite.modules.pro.util;
+
+import com.thinkgem.jeesite.modules.pro.entity.ContractCredentials;
+import com.thinkgem.jeesite.modules.pro.service.ContractCredentialsService;
+import com.thinkgem.jeesite.modules.pro.service.ContractService;
+import com.thinkgem.jeesite.modules.pro.web.ContractController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+
+/**
+ * Created by Admini on 2016/11/6.
+ */
+public class ImportFile extends Thread {
+    HttpServletRequest request;
+    MultipartFile file;
+    RedirectAttributes redirectAttributes;
+    ContractService contractService;
+    ContractCredentialsService contractCredentialsService;
+    /**
+     * 添加Flash消息
+     * @param
+     */
+    protected void addMessage(RedirectAttributes redirectAttributes, String... messages) {
+        StringBuilder sb = new StringBuilder();
+        for (String message : messages){
+            sb.append(message).append(messages.length>1?"<br/>":"");
+        }
+        redirectAttributes.addFlashAttribute("message", sb.toString());
+    }
+
+    public ImportFile(HttpServletRequest request, MultipartFile file, RedirectAttributes redirectAttributes, ContractService contractService, ContractCredentialsService contractCredentialsService){
+        this.request = request;
+        this.file = file;
+        this.redirectAttributes = redirectAttributes;
+        this.contractService = contractService;
+        this.contractCredentialsService = contractCredentialsService;
+    }
+
+    public void run(){
+        String fileName = request.getParameter("fileName");
+        String constractId = request.getParameter("constractId");
+        try {
+            File flo = new File(request.getSession().getServletContext().getRealPath("/") + "contractCredentials" );
+            if (!(constractId.equals("")||constractId==null)){
+                if (!((fileName.equals("")||fileName==null))){
+                    if(!flo.exists()){
+                        flo.mkdir();
+                    }
+                    File f = new File(request.getSession().getServletContext().getRealPath("/") + "contractCredentials" + File.separator +constractId+"_"+contractService.get(constractId).getName()+"_" + fileName+".pdf");
+                    if (f.exists()){
+                        addMessage(redirectAttributes, "文件名已存在");
+                    }
+                    else {
+                        f.createNewFile();
+                        file.transferTo(f);
+                        ContractCredentials contractCredentials = new ContractCredentials();
+                        contractCredentials.setContractId(constractId);
+                        contractCredentials.setCreateTime(new Date());
+                        contractCredentialsService.save(contractCredentials);
+                        contractCredentials.setUrl(constractId+"_"+contractService.get(constractId).getName()+"_" + fileName+".pdf");
+                        addMessage(redirectAttributes, "文件名保存成功");
+                    }
+                }
+                else {
+                    addMessage(redirectAttributes, "请输入文件名");
+                }
+            }
+            else {
+                addMessage(redirectAttributes, "没有对应的合同id");
+            }
+
+        } catch (IOException e){
+            addMessage(redirectAttributes, e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}

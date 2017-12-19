@@ -1,0 +1,901 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.pro.dao.ProjectDao">
+     <resultMap type="AttendanceList" id="ProjectResultMap">
+       <id property="id" column="id"/>
+       <association property="employee" javaType="Employee">
+        	 <result property="id" column="employee.id"/>
+        	 <result property="sysAreaId" column="sysAreaId"/>
+        	 <result property="name" column="name"/>
+			 <result property="projectId" column="projectId"/>
+        	 <result property="departmentId" column="departmentId"/>
+      	     <result property="employeeTypeId" column="employeeTypeId"/>
+        	 <result property="quarters" column="quarters"/>
+			<result property="sex" column="sex"/> 
+			<result property="mobile" column="mobile"/>		 
+			<result property="email" column="email"/>   
+         	<association property="sysArea" javaType="SysArea">
+          		 <result property="id" column="sysArea.id"/>
+             	<result property="name" column="sysArea.name"/>
+       	    </association>           
+      	    <association property="department" javaType="Department">
+                 <result property="name" column="department.name"/>
+            </association>         
+        	 <association property="employeeType" javaType="EmployeeType">
+             <result property="name" column="employeeType.name"/>
+            </association>        
+            <association property="quartersType" javaType="PositionType">
+                  <result property="name" column="quartersType.name"/>
+            </association>       
+            <association property="project" javaType="Project">
+         	      <result property="id" column="project.id"/>
+                  <result property="name" column="project.name"/>
+            </association>
+    	 </association>
+     </resultMap>
+    
+     <resultMap type="Project" id="ProjectMap">
+       <id property="id" column="id"/>
+       <result property="totalpredict" column="totalpredict" />
+			<result property="invoiceCount" column="invoiceCount" />
+       <result property="name" column="name"/>
+       <result property="remarks" column="remarks"/>
+       <result property="projectCode" column="projectCode"/>
+		<result property="totalcost" column="totalcost"/>
+		<result property="totalbudget" column="totalbudget"/>
+		<result property="totalconfirm" column="totalconfirm"/>
+		<result property="totalamount" column="totalamount"/>
+       	<result property="totalinvoice" column="totalinvoice"/>
+		<result property="totalreturn" column="totalreturn"/>
+		
+		<result property="checkamount" column="checkamount" />
+		<result property="realpayamount" column="realpayamount" />
+		<result property="billamount" column="billamount" />
+		<result property="pridictamount" column="pridictamount" />
+			
+		
+		
+       <result property="isExamine" column="isExamine"/>
+       <result property="files" column="files"/>
+       <result property="ispaycontract" column="ispaycontract"/>	
+	   <result property="iscostcontract" column="iscostcontract"/>	
+	   <result property="isframecontract" column="isframecontract"/>	
+	   <result property="examinestatus" column="examinestatus"/>	
+  
+       <association property="employee" javaType="Employee">
+        	 <result property="id" column="employee.id"/>
+        	 <result property="name" column="employee.name"/>
+			<result property="mobile" column="employee.mobile"/>		 
+       </association>
+        <association property="bpmemployee" javaType="Employee">
+        	 <result property="id" column="bpmemployee.id"/>
+        	 <result property="name" column="bpmemployee.name"/>	 
+       </association> 
+         <association property="spmemployee" javaType="Employee">
+        	 <result property="id" column="spmemployee.id"/>
+        	 <result property="name" column="spmemployee.name"/>	 
+       </association>    
+          
+        <association property="sysArea" javaType="SysArea">
+        	 <result property="id" column="sysArea.id"/>
+        	 <result property="name" column="sysArea.name"/>	 
+       </association>
+       
+         <association property="customer" javaType="Customer">
+        	 <result property="id" column="customer.id"/>
+        	 <result property="companyName" column="customer.companyName"/>	 
+        	 <result property="companyCode" column="customer.companyCode"/>	 
+        	 <result property="name" column="customer.name"/>	 
+        	 <result property="bankType" column="customer.bankType"/>	 
+        	 <result property="bankAccount" column="customer.bankAccount"/>	 
+       </association>
+         <association property="projectType" javaType="ProjectType">
+        	 <result property="id" column="projectType.id"/>
+        	 <result property="name" column="projectType.name"/>	 
+       </association>
+	
+     </resultMap>
+	<sql id="projectColumns">
+		a.id AS "id",
+		a.name AS "name",
+		a.project_code AS "projectCode",
+		a.files AS "files",
+		a.employee_id AS "employeeId",
+		a.project_type_id AS "projectTypeId",
+		a.sys_area_id AS "sysAreaId",
+	 	a.bpm_employee_id AS "bpmemployeeId",
+	 	a.is_pay_contract AS "ispaycontract",
+	 	a.is_cost_contract  AS "iscostcontract",
+	 	a.is_frame_contract  AS  "isframecontract", 	
+		a.examine_status AS "examinestatus",
+		a.remarks AS "remarks"
+	</sql>
+	
+	<sql id="projectJoins">
+	</sql>
+    
+    <sql id="employeeColumns">
+		a.id AS "employee.id",
+		a.quarters AS "quarters",
+		a.sys_area_id AS "sysAreaId",
+		a.name AS "name",
+		a.department_id AS "departmentId",
+		a.employee_type_id AS "employeeTypeId",	 
+		a.sex AS "sex",		 
+		a.mobile AS "mobile",	 
+		a.email AS "email",	 
+		s.name AS "sysArea.name",
+		s.id AS "sysArea.id",
+		d.name As "department.name",
+		et.name AS "employeeType.name",
+		q.name AS "quartersType.name"
+	</sql>
+      
+ 	<select id="getProjectDetail" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		c.company_name AS "customer.companyName",
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		e3.name AS "spmemployee.name",
+		(select SUM(cc.cost) from contract_cost cc where  cc.project_id = a.id )AS "totalcost",
+		(select SUM(cb.amount) from contract_budget cb where cb.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalbudget",
+		if((select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id)>0,(select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id),(select sum(if(ISNULL(cp4.count),cp4.pay_amount,cp4.pay_amount * cp4.count)) from contract_pay cp4 where cp4.contract_id in(SELECT c8.id from contract c8 WHERE c8.project_id = a.id)))  AS "totalamount",
+<!-- 		(select SUM(cp.pay_amount) from contract_pay  cp where cp.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) and cp.out_confirm_status = 2) AS "totalconfirm", -->
+		(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) ) AS "totalconfirm",
+		(select SUM(i2.invoice_amount) from invoice i2 where  not ISNULL(i2.invoice_code) and i2.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalinvoice",
+		(select sum(irr.return_amount) from invoice_return_register irr where irr.invoice_id in(select i3.id from invoice i3 where i3.contract_id in (select c.id from contract c where c.project_id = a.id))) AS "totalreturn",
+		(select sum(oc.check_amount) from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) as "checkamount",
+		
+		(select sum(o2.predict_pay) from outcontract_pay o2 where  o2.outcontract_id in( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) )  ) as "pridictamount"	,
+		(select sum(opr.pay_amount) from outcontract_pay_register opr where opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) )as "realpayamount",
+		((select sum(opr.bill_amount) from outcontract_bill  opr where opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) ) - (select if(isnull(sum(opr.pay_amount)),0,sum(opr.pay_amount)) from outcontract_pay_register opr where opr.outcontract_bill_id in	(select sum(opr.id) from outcontract_bill  opr where opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) )) )as "billamount"
+		
+	 
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join employee e3 on a.spm_employee_id = e3.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		left join customer c on a.customer_id = c.id
+		where
+		a.examine_status = 2 
+		and a.id = #{id}		  
+	</select>
+	<select id="get" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		c.company_name AS "customer.companyName",
+		c.company_code AS "customer.companyCode",
+		c.id AS "customer.id",
+		c.bank_type AS "customer.bankType",
+		c.bank_account AS "customer.bankAccount",
+		c.name AS "customer.name",
+		pt.name AS "projectType.name",
+		pt.id AS "projectType.id",
+		e1.name AS "employee.name",
+		e1.id AS "employee.id",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		sa.id AS "sysArea.id",
+		e2.name AS "bpmemployee.name",
+		e2.id AS "bpmemployee.id",
+		e3.name AS "spmemployee.name",
+		e3.id AS "spmemployee.id"
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join employee e3 on a.spm_employee_id = e3.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		left join customer c on a.customer_id = c.id
+		WHERE a.id = #{id}
+	</select>
+	
+
+	<select id="findList" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		c.company_name as "customer.companyName",
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		e3.name AS "spmemployee.name",
+		e3.id AS "spmemployee.id"
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		left join customer c on a.customer_id = c.id
+		left join employee e3 on a.spm_employee_id = e3.id
+		<where>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND  a.examine_status = #{examinestatus}				 
+			</if>
+		
+		
+			<if test="employeeId != null and employeeId != '' ">
+				AND a.employee_id = #{employeeId}
+					 
+			</if>
+			<if test="bpmemployeeId != null and bpmemployeeId != '' ">
+				AND a.bpm_employee_id = #{bpmemployeeId} 
+					 
+			</if>
+			<if test="spmemployeeId != null and spmemployeeId != '' ">
+				AND a.spm_employee_id = #{spmemployeeId} 
+					 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			
+			
+			<if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY a.id desc
+	</select>
+	
+	<select id="findAllList" resultType="Project">
+		SELECT 
+			<include refid="projectColumns"/>
+		FROM project a
+		<include refid="projectJoins"/>
+		<where>
+			
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO project(
+			name,
+			files,
+			employee_id,
+			project_type_id,
+			sys_area_id,
+			bpm_employee_id,
+			spm_employee_id,
+			is_pay_contract,
+			is_cost_contract,
+			is_frame_contract,
+			examine_status,
+			project_code,
+			customer_id,
+			remarks
+		) VALUES (
+			#{name},
+			#{files},
+			#{employee.id},
+			#{projectType.id},
+			#{sysArea.id},
+		 	#{bpmemployee.id},
+		 	#{spmemployee.id},
+		 	#{ispaycontract},
+		 	#{iscostcontract},
+		 	#{isframecontract},
+			#{examinestatus},
+			#{projectCode},
+			#{customer.id},
+			#{remarks}
+		)
+	</insert>	
+	<update id="update">
+		UPDATE project SET 	
+			name = #{name},
+			files = #{files},
+			project_code = #{projectCode},
+			customer_id = #{customer.id},
+			employee_id = #{employee.id},
+			project_type_id = #{projectType.id},
+			sys_area_id = #{sysArea.id},
+ 			bpm_employee_id  = #{bpmemployee.id},
+ 			spm_employee_id  = #{spmemployee.id},
+		 	is_pay_contract = #{ispaycontract},
+		 	is_cost_contract = #{iscostcontract},
+		 	is_frame_contract = #{isframecontract},
+			examine_status = #{examinestatus},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>	
+	<update id="delete">
+		DELETE FROM project
+		WHERE id = #{id}
+	</update>	
+	<select id="chooseList" resultMap="ProjectResultMap">
+		SELECT 
+		<include refid="employeeColumns"/>,
+			al.id AS "id",		 
+			al.project_id AS "project.id",
+			p.name AS "project.name"
+			from attendance_list al 
+			LEFT JOIN project p ON p.id = al.project_id 			
+			LEFT JOIN employee a on al.employee_id = a.id
+	 	    LEFT JOIN sys_area s ON a.sys_area_id = s.id 
+			LEFT JOIN department d ON a.department_id = d.id
+			LEFT JOIN employee_type et ON a.employee_type_id = et.id
+			LEFT JOIN position_type q on a.quarters = q.id
+			<where>
+		     <!--<if test="orderId != null and orderId != ''">
+				AND p.employee_id = #{orderId}				 
+			</if>
+		  -->	
+		  	al.del_flag = #{DEL_FLAG_NORMAL}
+		   <if test="sysArea != null and sysArea != ''and sysArea.id !='' ">			
+				AND s.id = #{sysArea.id}
+			</if>
+			 <if test="name != null and name != ''">			
+				AND a.name like concat('%',#{name},'%')
+			</if>
+			<if test="project != null and project != ''">
+				AND ( #{project.id} like concat('%,',p.id,',%')
+				or p.id = #{project.id} )
+			</if>
+			 <if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (p.spm_employee_id = #{authorityEmployeeId} or
+				        p.bpm_employee_id = #{authorityEmployeeId} or 
+				        p.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+		</where>
+ 
+	</select>
+	
+	<!-- 项目查询 -->
+	<select id="findInfDetailPage" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		(select SUM(cc.cost) from contract_cost cc where  cc.project_id = a.id )AS "totalcost",
+		(select SUM(cb.amount) from contract_budget cb where cb.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalbudget",
+		if((select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id)>0,(select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id),(select sum(if(ISNULL(cp4.count),cp4.pay_amount,cp4.pay_amount * cp4.count)) from contract_pay cp4 where cp4.contract_id in(SELECT c8.id from contract c8 WHERE c8.project_id = a.id)))  AS "totalamount",
+<!-- 		(select SUM(cp.pay_amount) from contract_pay  cp where cp.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) and cp.out_confirm_status = 2) AS "totalconfirm", -->
+		(select SUM(i2.invoice_amount) from invoice i2 where not ISNULL(i2.invoice_code) and i2.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalinvoice",
+		(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) ) AS "totalconfirm",
+		(select sum(irr.return_amount) from invoice_return_register irr where irr.invoice_id in(select i3.id from invoice i3 where i3.contract_id in (select c.id from contract c where c.project_id = a.id))) AS "totalreturn"
+		<!-- 当月project下的所有contract是否有comfirm记录，且 contract 有相应的未引用过的pay记录 -->
+		<!-- (select count(*)  from contract_pay cp1 LEFT JOIN contract_confirm cc2 on cc2.contract_id = cp1.contract_id where (select count(*) from contract_confirm cc3 where cc3.contract_id = cp1.contract_id and cc3.month = #{templeDate}) = 0 and  cp1.contract_id in(select c1.id from contract c1 where c1.project_id = a.id ) and  cp1.out_confirm_status != 2 and ((not ISNULL(cp1.pay_date) and   #{templeDate} > cp1.pay_date) or (ISNULL(cp1.pay_date)) )) as "isExamine" -->
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		<where>
+		 	
+			 <if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY a.id desc
+	</select>
+	
+	
+	
+	
+	<!-- 项目预算成本详细 -->
+	<select id="findDetailPage" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		c.company_name as "customer.companyName",
+		e2.name AS "bpmemployee.name",
+		(select count(i.id) from invoice i where i.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "invoiceCount",
+		(select sum(i.invoice_amount) from invoice i where i.contract_id in(select c.id from contract c where c.project_id = a.id) and i.is_advance_charge = 2 and (select count(cic.id) from contract_invoice_confirm cic where cic.invoice_id like concat("%,",i.id,",%")) = 0) AS "totalpredict",
+		
+		(select SUM(cc.cost) from contract_cost cc where  cc.project_id = a.id )AS "totalcost",
+		(select SUM(cb.amount) from contract_budget cb where cb.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalbudget",
+		if((select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id)>0,(select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id),(select sum(if(ISNULL(cp4.count),cp4.pay_amount,cp4.pay_amount * cp4.count)) from contract_pay cp4 where cp4.contract_id in(SELECT c8.id from contract c8 WHERE c8.project_id = a.id)))  AS "totalamount",
+<!-- 		(select SUM(cp.pay_amount) from contract_pay  cp where cp.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) and cp.out_confirm_status = 2) AS "totalconfirm", -->
+		(select SUM(i2.invoice_amount) from invoice i2 where not ISNULL(i2.invoice_code) and i2.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalinvoice",
+		(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) ) AS "totalconfirm",
+		(select sum(irr.return_amount) from invoice_return_register irr where irr.invoice_id in(select i3.id from invoice i3 where i3.contract_id in (select c.id from contract c where c.project_id = a.id))) AS "totalreturn"
+		<!-- 当月project下的所有contract是否有comfirm记录，且 contract 有相应的未引用过的pay记录 -->
+		<!-- (select count(*)  from contract_pay cp1 LEFT JOIN contract_confirm cc2 on cc2.contract_id = cp1.contract_id where (select count(*) from contract_confirm cc3 where cc3.contract_id = cp1.contract_id and cc3.month = #{templeDate}) = 0 and  cp1.contract_id in(select c1.id from contract c1 where c1.project_id = a.id ) and  cp1.out_confirm_status != 2 and ((not ISNULL(cp1.pay_date) and   #{templeDate} > cp1.pay_date) or (ISNULL(cp1.pay_date)) )) as "isExamine" -->
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		left join customer c on a.customer_id = c.id
+		<where>
+		a.examine_status = 2
+		 	
+			<if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY a.id desc
+	</select>
+	
+	<!-- 工作量确认12个月项目列表 -->
+	<select id="getProjectConfirmList"  resultType="java.util.HashMap">
+	 		<!-- select 
+			 SUBSTR(DATE_SUB(now(), INTERVAL 12 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id} ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id} ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"  UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 11 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all -->
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 10 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 9 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 8 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 7 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 6 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 5 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 4 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`) >0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 3 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id} ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 2 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`)>0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    UNION  all
+			select
+			 SUBSTR(DATE_SUB(now(), INTERVAL 1 MONTH),1,7) as "date",if((select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`) >0,(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = #{id}  ) and SUBSTRING(cc.month,1,7) = `date`),0) AS "totalconfirm"    
+	</select>
+	
+	<!--工作量确认项目详细列表 -->
+	 <select id="findWorkerDetail" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		(select SUM(cc.cost) from contract_cost cc where  cc.project_id = a.id )AS "totalcost",
+		(select SUM(cb.amount) from contract_budget cb where cb.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalbudget",
+		if((select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id)>0,(select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id),(select sum(if(ISNULL(cp4.count),cp4.pay_amount,cp4.pay_amount * cp4.count)) from contract_pay cp4 where cp4.contract_id in(SELECT c8.id from contract c8 WHERE c8.project_id = a.id)))  AS "totalamount",
+	<!-- 	(select SUM(cp.pay_amount) from contract_pay  cp where cp.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) and cp.out_confirm_status = 2) AS "totalconfirm", -->
+	    (select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) ) AS "totalconfirm", 
+		(select count(*)  from contract_pay cp1 LEFT JOIN contract_confirm cc2 on cc2.contract_id = cp1.contract_id where (select count(*) from contract_confirm cc3 where cc3.contract_id = cp1.contract_id and cc3.month = #{templeDate}) = 0 and  cp1.contract_id in(select c1.id from contract c1 where c1.project_id = a.id ) and  cp1.out_confirm_status != 2 and ((not ISNULL(cp1.pay_date) and   #{templeDate} > cp1.pay_date) or (ISNULL(cp1.pay_date)) )) as "isExamine"
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		<where>
+		a.examine_status = 2
+		
+		<!-- 项目下有合同的 -->
+		<!-- and (select count(*) from contract c5 where c5.id in(select c1.id from contract c1 where c1.project_id = a.id )) > 0 -->
+			<if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY isExamine desc,a.id desc
+	</select> 
+	
+	<!-- 外包管理项目视图 findOutDetailPage-->
+	<select id="findOutDetailPage" resultMap="ProjectMap">
+	
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		<!--  项目下所有外包合同编号 ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ) -->
+	    (select sum(oc.check_amount) from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) as "checkamount",
+		
+		(select sum(o2.predict_pay) from outcontract_pay o2 where  o2.outcontract_id in( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) )  ) as "pridictamount"	,
+		(select sum(opr.pay_amount) from outcontract_pay_register opr where opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) )as "realpayamount",
+		((select sum(opr.bill_amount) from outcontract_bill  opr where opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) ) -  (select if(isnull(sum(opr.pay_amount)),0,sum(opr.pay_amount)) from outcontract_pay_register opr where opr.outcontract_bill_id in  (select sum(opr.id) from outcontract_bill  opr where   opr.outcontract_check_id in (select oc.id from outcontract_check oc where oc.outcontract_pay_id in(select op.id from outcontract_pay op where op.outcontract_id in ( select o4.id from outcontract o4 where o4.parent_id in (select o.id from outcontract o where o.project_id = a.id) or o4.id in (select o.id from outcontract o where o.project_id = a.id) ))) )) ) as "billamount" 
+		
+		
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		<where>
+		a.examine_status = 2
+		 	
+			<if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+		 ORDER BY a.id desc
+	
+	</select>
+	
+	
+	
+	
+	
+	<select id="findExamineDetailPage" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		(select SUM(cc.cost) from contract_cost cc where  cc.project_id = a.id )AS "totalcost",
+		(select SUM(cb.amount) from contract_budget cb where cb.contract_id in(select c.id from contract c where c.project_id = a.id)) AS "totalbudget",
+		(select SUM(c1.amount) from contract c1 WHERE c1.project_id = a.id) AS "totalamount",
+	<!-- 	(select SUM(cp.pay_amount) from contract_pay  cp where cp.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) and cp.out_confirm_status = 2) AS "totalconfirm", -->
+		(select SUM(cc.confirm_amount) from contract_confirm  cc where cc.contract_id in(select c2.id from contract c2 where c2.project_id = a.id ) ) AS "totalconfirm",
+		(select count(*) from contract_confirm cc2 where cc2.contract_id in(select ccc.id from contract ccc WHERE ccc.project_id= a.id) and cc2.examine_status = 1)  as "isExamine"
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		<where>
+		a.examine_status = 2
+    	AND (select count(*) from contract_confirm cc2 where cc2.contract_id in(select ccc.id from contract ccc WHERE ccc.project_id= a.id)) > 0 
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			 <if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY isExamine desc,a.id desc
+	</select>
+	
+	<select id="findExamineList" resultMap="ProjectMap">
+		SELECT 
+			<include refid="projectColumns"/>,
+		pt.name AS "projectType.name",
+		e1.name AS "employee.name",
+		e1.mobile AS "employee.mobile",
+		sa.name AS "sysArea.name",
+		e2.name AS "bpmemployee.name",
+		e3.name AS "spmemployee.name",
+		e3.id AS "spmemployee.id"
+		FROM project a
+		Left join project_type  pt on a.project_type_id = pt.id
+		left join employee e1 on a.employee_id = e1.id
+		left join employee e2 on a.bpm_employee_id = e2.id
+
+		left join employee e3 on a.spm_employee_id = e3.id
+		left join sys_area sa on sa.id = a.sys_area_id
+		<where>
+			<if test="employeeId != null and employeeId != '' ">
+				AND a.employee_id = #{employeeId}
+					 
+			</if>
+			<if test="examinestatus != null and examinestatus != '' ">
+				AND a.examine_status = #{examinestatus}
+					 
+			</if>
+			<if test="employee != null and employee.name != '' and employee.name != null ">
+				AND e1.name like concat("%",#{employee.name},"%")
+					 
+			</if>
+			<if test="bpmemployee != null and bpmemployee.name != '' and bpmemployee.name != null ">
+				AND e2.name like concat("%",#{bpmemployee.name},"%")
+					 
+			</if>
+			<if test="projectTypeId != null and projectTypeId != ''">
+				AND pt.id = #{projectTypeId}
+					 
+			</if>
+			
+			<if test="sysAreaId != null and sysAreaId != ''">	
+				AND (sa.parent_ids like concat('%,',#{sysAreaId},',%')
+				or sa.id = #{sysAreaId})
+								 
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="projectCode != null and projectCode != ''">
+				AND a.project_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{projectCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{projectCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{projectCode},'%')</if>
+			</if>
+			 <if test="authorityEmployeeId != null and authorityEmployeeId != ''">	
+				 AND   (a.spm_employee_id = #{authorityEmployeeId} or
+				        a.bpm_employee_id = #{authorityEmployeeId} or 
+				        a.employee_id = #{authorityEmployeeId}
+						)		 
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	 ORDER BY a.examine_status,a.id desc
+	</select>
+
+	<select id="getExamineProjectCount" resultType="java.lang.Integer">
+		 select (a.aa - b.aa) from (SELECT 
+		 count(*) aa
+		FROM project   ) a,
+	  (select count(*) aa
+		FROM project  
+	 	where  examine_status = 2 or examine_status = 3) b
+	 </select>
+</mapper>
