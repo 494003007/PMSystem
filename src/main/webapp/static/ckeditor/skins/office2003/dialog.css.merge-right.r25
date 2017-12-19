@@ -1,0 +1,146 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.fin.web;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+
+import com.thinkgem.jeesite.common.beanvalidator.BeanValidators;
+import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
+import com.thinkgem.jeesite.modules.fin.entity.AccumulationFund;
+import com.thinkgem.jeesite.modules.fin.utils.AccumulationFundUtil;
+import com.thinkgem.jeesite.modules.fin.utils.AccumulationFundUtil;
+import com.thinkgem.jeesite.modules.fin.utils.AccumulationFundUtil;
+import com.thinkgem.jeesite.modules.per.service.employeemanage.EmployeeService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.thinkgem.jeesite.common.config.Global;
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.fin.entity.AccumulationFund;
+import com.thinkgem.jeesite.modules.fin.service.AccumulationFundService;
+
+import java.util.List;
+
+/**
+ * accumulation_fundController
+ * @author czy
+ * @version 2016-10-13
+ */
+@Controller
+@RequestMapping(value = "${adminPath}/fin/accumulationFund")
+public class AccumulationFundController extends BaseController {
+	@Autowired
+	private EmployeeService employeeService;
+	@Autowired
+	private AccumulationFundService accumulationFundService;
+
+	@ModelAttribute
+	public AccumulationFund get(@RequestParam(required=false) String id) {
+		AccumulationFund entity = null;
+		if (StringUtils.isNotBlank(id)){
+			entity = accumulationFundService.get(id);
+		}
+		if (entity == null){
+			entity = new AccumulationFund();
+		}
+		return entity;
+	}
+
+	@RequiresPermissions("fin:accumulationFund:view")
+	@RequestMapping(value = {"list", ""})
+	public String list(AccumulationFund accumulationFund, HttpServletRequest request, HttpServletResponse response, Model model) {
+		Page<AccumulationFund> page = accumulationFundService.findPage(new Page<AccumulationFund>(request, response), accumulationFund);
+		model.addAttribute("page", page);
+		return "modules/fin/accumulationFundList";
+	}
+
+	@RequiresPermissions("fin:accumulationFund:view")
+	@RequestMapping(value = "form")
+	public String form(AccumulationFund accumulationFund, Model model) {
+		model.addAttribute("accumulationFund", accumulationFund);
+		return "modules/fin/accumulationFundForm";
+	}
+
+	@RequiresPermissions("fin:accumulationFund:edit")
+	@RequestMapping(value = "save")
+	public String save(AccumulationFund accumulationFund, Model model, RedirectAttributes redirectAttributes) {
+		if (!beanValidator(model, accumulationFund)){
+			return form(accumulationFund, model);
+		}
+		accumulationFundService.save(accumulationFund);
+		addMessage(redirectAttributes, "保存accumulation_fund成功");
+		return "redirect:"+Global.getAdminPath()+"/fin/accumulationFund/?repage";
+	}
+
+	@RequiresPermissions("fin:accumulationFund:edit")
+	@RequestMapping(value = "delete")
+	public String delete(AccumulationFund accumulationFund, RedirectAttributes redirectAttributes) {
+		accumulationFundService.delete(accumulationFund);
+		addMessage(redirectAttributes, "删除accumulation_fund成功");
+		return "redirect:"+Global.getAdminPath()+"/fin/accumulationFund/?repage";
+	}
+
+	@ResponseBody
+	@RequiresPermissions("fin:accumulationFund:edit")
+	@RequestMapping(value = "checkRule")
+	public boolean checkRule(AccumulationFund accumulationFund) throws  Exception{
+		if (employeeService.get(String.valueOf(accumulationFund.getEmployeeId())) == null) {
+			throw new Exception("该employeeId不存在");
+		} else return true;
+	}
+
+	@RequiresPermissions("fin:accumulationFund:edit")
+	@RequestMapping(value = "import", method = RequestMethod.POST)
+	public String importFile(MultipartFile file, RedirectAttributes redirectAttributes) {
+		int successNum = 0;                                                                 //记录成功记录条数
+		int failureNum = 0;                                                                 //记录失败记录条数
+		StringBuilder failureMsg = new StringBuilder();                                     //记录失败信息
+		if (Global.isDemoMode()) {                                                          //判断是否为演示模式
+			addMessage(redirectAttributes, "演示模式，不允许操作！");                       //演示模式不允许操作
+			return "redirect:"+Global.getAdminPath()+"/fin/accumulationFund/?repage";
+		}
+		try {
+			ImportExcel ei = new ImportExcel(file, 1, 0);                                  //解析excel文件
+			List<AccumulationFund> list = AccumulationFundUtil.getDataList(ei,failureMsg);//获取一个excel数据对象数组
+			for (AccumulationFund accumulationFund : list) {                                   //遍历list数组内的accumulationFund对象
+				try {
+					if (checkRule(accumulationFund)) {                                        //判断employerId是否符合要求
+						accumulationFundService.save(accumulationFund);                         //存储accumulationFund到数据库
+						successNum++;                                                       //成功条数+1
+					}
+				}
+				catch(ConstraintViolationException ex){
+					failureMsg.append("----------------------------------导入失败：");
+					List<String> messageList = BeanValidators.extractPropertyAndMessageAsList(ex, ": ");
+					for (String message : messageList){
+						failureMsg.append(message+"; ");
+						failureNum++;
+					}
+				}
+				catch (Exception e) {
+					failureNum++;                                                           //若抛出异常则失败条数+1
+					failureMsg.append("导入用户失败！失败信息：第" + (failureNum + successNum) + "条数据(" + "员工编号id:" + accumulationFund.getEmployeeId() + "，缴费时间:" + accumulationFund.getPayDate() + "，公司缴费金额:" + accumulationFund.getCompanyPay() + "，个人缴费金额:" + accumulationFund.getPersonalPay() + ")员工id有误<br/>");//在失败信息中加入失败信息
+				}
+			}
+			if (failureNum>0){
+				failureMsg.insert(0, "，失败 "+failureNum+" 条用户，导入信息如下<br/>");
+			}
+			addMessage(redirectAttributes, "已成功导入 "+successNum+" 条用户"+failureMsg);
+		} catch (Exception e) {
+			addMessage(redirectAttributes, e.getMessage());
+		}
+
+		return "redirect:" + Global.getAdminPath() + "/fin/accumulationFund/?repage";
+	}
+
+}

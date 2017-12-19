@@ -1,0 +1,204 @@
+/**
+ * Copyright &copy; 2012-2016 <a href="https://github.com/thinkgem/jeesite">JeeSite</a> All rights reserved.
+ */
+package com.thinkgem.jeesite.modules.pro.web;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.thinkgem.jeesite.modules.pro.entity.ContractCredentials;
+import com.thinkgem.jeesite.modules.pro.service.ContractCredentialsService;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.thinkgem.jeesite.common.config.Global;
+import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.pro.entity.Contract;
+import com.thinkgem.jeesite.modules.pro.service.ContractService;
+
+import java.io.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 合同登记Controller
+ * @author cdoublej
+ * @version 2016-10-08
+ */
+@Controller
+@RequestMapping(value = "${adminPath}/pro/contract")
+public class ContractController extends BaseController {
+
+	@Autowired
+	private ContractService contractService;
+	@Autowired
+	private ContractCredentialsService contractCredentialsService;
+
+	@ModelAttribute
+	public Contract get(@RequestParam(required=false) String id) {
+		Contract entity = null;
+		if (StringUtils.isNotBlank(id)){
+			entity = contractService.get(id);
+		}
+		if (entity == null){
+			entity = new Contract();
+		}
+		return entity;
+	}
+	
+	@RequiresPermissions("pro:contract:view")
+	@RequestMapping(value = {"list", ""})
+	public String list(Contract contract, HttpServletRequest request, HttpServletResponse response, Model model) {
+		Page<Contract> page = contractService.findPage(new Page<Contract>(request, response), contract); 
+		model.addAttribute("page", page);
+		return "modules/pro/contractList";
+	}
+
+	@RequiresPermissions("pro:contract:view")
+	@RequestMapping(value = "form")
+	public String form(Contract contract, Model model) {
+
+		ContractCredentials contractCredentials = new ContractCredentials();
+		contractCredentials.setContractId(contract.getId());
+		List<ContractCredentials> contractCredentialsList = contractCredentialsService.findList(contractCredentials);
+		model.addAttribute("contract", contract);
+		model.addAttribute("contractCredentialsList", contractCredentialsList);
+		return "modules/pro/contractForm";
+	}
+
+	@RequiresPermissions("pro:contract:edit")
+	@RequestMapping(value = "save")
+	public String save(Contract contract, Model model, RedirectAttributes redirectAttributes) {
+		if (!beanValidator(model, contract)){
+			return form(contract, model);
+		}
+		contractService.save(contract);
+		addMessage(redirectAttributes, "保存合同成功");
+		return "redirect:"+Global.getAdminPath()+"/pro/contract/?repage";
+	}
+	
+	@RequiresPermissions("pro:contract:edit")
+	@RequestMapping(value = "delete")
+	public String delete(Contract contract, RedirectAttributes redirectAttributes) {
+		contractService.delete(contract);
+		addMessage(redirectAttributes, "删除合同成功");
+		return "redirect:"+Global.getAdminPath()+"/pro/contract/?repage";
+	}
+
+	@RequiresPermissions("user")
+	@ResponseBody
+	@RequestMapping(value = "treeData")
+	public List<Map<String, Object>> treeData(@RequestParam(required=false) String extId, HttpServletResponse response) {
+		List<Map<String, Object>> mapList = Lists.newArrayList();
+		List<Contract> list = contractService.findList(new Contract());
+		for (int i=0; i<list.size(); i++){
+			Contract e = list.get(i);
+			if (StringUtils.isBlank(extId) || (extId!=null && !extId.equals(e.getId()) && e.getParentIds().indexOf(","+extId+",")==-1)){
+				Map<String, Object> map = Maps.newHashMap();
+				map.put("id", e.getId());
+				map.put("pId", e.getParentId());
+				map.put("name", e.getName());
+				mapList.add(map);
+			}
+		}
+		return mapList;
+	}
+
+	@RequiresPermissions("pro:contract:edit")
+	@RequestMapping(value = "importFile", method= RequestMethod.POST)
+	public @ResponseBody Map<String, Object> importFile(HttpServletRequest request, MultipartFile file, RedirectAttributes redirectAttributes) {
+		Map<String,Object> map = new HashMap<String,Object>();
+		String constractId = request.getParameter("constractId");
+		String fileName =request.getParameter("fileName")+".pdf";
+		try {
+			File flo = new File(request.getSession().getServletContext().getRealPath("/") + "contractCredentials" );
+			if (!(constractId.equals("")||constractId==null)){
+				if (!((fileName.equals("")||fileName==null))){
+					if(!flo.exists()){
+						flo.mkdir();
+					}
+					File f = new File(request.getSession().getServletContext().getRealPath("/") + "contractCredentials" + File.separator+ fileName);
+					if (f.exists()){
+						map.put("msg","文件名 "+fileName+" 已存在");
+						addMessage(redirectAttributes, "文件名 "+fileName+" 已存在");
+					}
+					else {
+						f.createNewFile();
+						file.transferTo(f);
+						ContractCredentials contractCredentials = new ContractCredentials();
+						contractCredentials.setContractId(constractId);
+						contractCredentials.setCreateTime(new Date());
+						contractCredentials.setUrl(fileName);
+						contractCredentialsService.save(contractCredentials);
+						List<ContractCredentials> contractCredentialsList = contractCredentialsService.findList(contractCredentials);
+						map.put("msg","文件 "+fileName+" 保存成功");
+						map.put("constractCredentialsId", ""+contractCredentialsList.get(0).getId());
+						addMessage(redirectAttributes, "文件 "+fileName+" 保存成功");
+					}
+				}
+				else {
+					map.put("msg","请输入文件名");
+					addMessage(redirectAttributes, "请输入文件名");
+				}
+			}
+			else {
+				map.put("msg","没有对应的合同id");
+				addMessage(redirectAttributes, "没有对应的合同id");
+			}
+
+		} catch (IOException e){
+			map.put("msg",e.getMessage());
+			addMessage(redirectAttributes, e.getMessage());
+			e.printStackTrace();
+		}finally {
+			return map;
+
+		}
+
+	}
+
+	@RequiresPermissions("pro:contract:edit")
+	@RequestMapping(value = "isExistFile", method= RequestMethod.POST)
+	public @ResponseBody Map<String, Object> isExistFile(HttpServletRequest request,  RedirectAttributes redirectAttributes) {
+		Map<String,Object> map = new HashMap<String,Object>();
+		String constractId = request.getParameter("constractId");
+		String fileName = request.getParameter("fileName")+".pdf";
+		File f = new File(request.getSession().getServletContext().getRealPath("/") + "contractCredentials" + File.separator + fileName);
+		if (f.exists()){
+			map.put("msg","exist");
+		}
+		else {
+			map.put("msg","notExist");
+		}
+		return map;
+	}
+
+	@RequiresPermissions("pro:contract:edit")
+	@RequestMapping(value = "deleteFile", method= RequestMethod.POST)
+	public @ResponseBody Map<String, Object> deleteFile(HttpServletRequest request,  RedirectAttributes redirectAttributes){
+		String constractCredentialsId = request.getParameter("constractCredentialsId");
+		Map<String, Object> map = new HashedMap();
+		ContractCredentials contractCredentials = contractCredentialsService.get(""+constractCredentialsId);
+		try {
+			contractCredentialsService.delete(contractCredentials);
+			map.put("msg",contractCredentials.getUrl()+"删除成功");
+		}catch (Exception e){
+			map.put("msg",contractCredentials.getUrl()+"删除失败");
+		}
+
+		return map;
+	}
+
+}

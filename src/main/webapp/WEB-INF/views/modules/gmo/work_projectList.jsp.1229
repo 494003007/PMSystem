@@ -1,0 +1,139 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/taglib.jsp"%>
+<html>
+<head>
+	<title>项目管理</title>
+	<meta name="decorator" content="default"/>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			
+		});
+		function page(n,s){
+			$("#pageNo").val(n);
+			$("#pageSize").val(s);
+			$("#searchForm").submit();
+        	return false;
+        }
+	</script>
+</head>
+<body>
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="${ctx}/gmo/workConfirm/projectList">项目列表</a></li>
+		 
+	</ul>
+	<form:form id="searchForm" modelAttribute="project" action="${ctx}/gmo/workConfirm/projectList" method="post" class="breadcrumb form-search">
+		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
+		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
+		<ul class="ul-form">
+			<li><label>项目名称：</label>
+				<form:input path="name" htmlEscape="false" maxlength="50" class="input-medium"/>
+			</li>
+			<li><label>项目类型：</label>
+			 <form:select path="projectTypeId" class="input-medium">
+				<form:option value="" label="" />
+				<form:options items="${fns:getPro_Selected('projectType')}" itemLabel="name" itemValue="id" htmlEscape="false" />
+			</form:select>
+			</li>
+			<li><label>大区经理：</label>
+				<form:input path="bpmemployee.name" htmlEscape="false" maxlength="50" class="input-medium"/>
+			</li>
+			
+			
+			<li><label>项目经理：</label>
+				<form:input path="employee.name" htmlEscape="false" maxlength="50" class="input-medium"/>
+			</li>
+			 
+			<li><label>所属区域：</label> <sys:treeselect id="sysArea" name="sysAreaId" value=""
+			labelName="" labelValue="" title="区域" url="/sys/sysArea/treeData" cssClass="input-small" allowClear="true" notAllowSelectParent="false" />
+			</li>
+		 
+			<li class="btns"><input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/></li>
+			<li class="clearfix"></li>
+		</ul>
+	</form:form>
+	<sys:message content="${message}"/>
+	<table id="contentTable" class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>项目编号</th>
+				<th>项目名称</th>
+				<th>项目类型</th>
+				<th>大区经理姓名</th>		 
+				<th>所属区域</th>
+				<th>项目经理姓名</th>
+				<th>联系电话</th>
+				
+				<th>总金额(元)</th>
+				<th>总预算(元)</th>
+				<th>总成本(元)</th>
+				<th>已确认金额(元)</th>
+				
+			<!-- <th>成本是否分合同</th>
+				<th>是否框架合同</th>
+				<th>是否纯成本支出类项目</th>
+			 -->
+				 <th>操作</th> 
+			</tr>
+		</thead>
+		<tbody>
+		<c:forEach items="${page.list}" var="project">
+			<tr>
+				<td><a href="${ctx}/pro/project/form?id=${project.id}">
+					${project.projectCode}
+				</a></td>
+				<td> 
+					${project.name}
+				</td>
+				 <td>
+					${project.projectType.name}
+				</td>
+				 <td>
+					${project.bpmemployee.name}
+				</td>
+	 
+	 			 <td>
+					${project.sysArea.name}
+				</td>
+	 
+	 			 <td>
+					${project.employee.name}
+				</td>
+	 
+	 			 <td>
+				    ${project.employee.mobile}
+				</td>
+				
+				 <td style="text-align: right;">
+			    	 <fmt:formatNumber value="${not empty project.totalamount?project.totalamount:'0.0'}" pattern="###,##0.00"></fmt:formatNumber>			      
+			    </td>
+				 <td style="text-align: right;">
+			    	 <fmt:formatNumber value="${not empty project.totalbudget?project.totalbudget:'0.0'}" pattern="###,##0.00"></fmt:formatNumber>			      
+			    </td>
+			    <td style="text-align: right;">
+			    	 <fmt:formatNumber value="${not empty project.totalcost?project.totalcost:'0.0'}" pattern="###,##0.00"></fmt:formatNumber>			      
+			    </td>
+			    <td style="text-align: right;">
+			    	 <fmt:formatNumber value="${not empty project.totalconfirm?project.totalconfirm:'0.0'}" pattern="###,##0.00"></fmt:formatNumber>			      
+			    </td>
+ 				 <!--   
+	 			 <td>
+					${project.iscostcontract==2?"是":"否"}
+				</td>
+	 			 <td>
+					${project.isframecontract==2?"是":"否"}
+				</td>
+				 <td>
+					${project.ispaycontract==2?"是":"否"}
+				</td>
+				 -->
+				<shiro:hasPermission name="gmo:workConfirm:*"><td>
+    				<a href="${ctx}/gmo/workConfirm?projectId=${project.id}">${project.isExamine==0?"已审核":"审核"}</a>
+ 
+				</td></shiro:hasPermission>
+			</tr>
+		</c:forEach>
+		</tbody>
+	</table>
+	<div class="pagination">${page}</div>
+</body>
+</html>

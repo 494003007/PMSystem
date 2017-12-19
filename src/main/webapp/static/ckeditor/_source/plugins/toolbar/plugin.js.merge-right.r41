@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.fin.dao.SocialSecurityDao">
+
+	<resultMap type="socialSecurity" id="socialSecurityResultMap">
+		<id property="id" column="id"/>
+		<result property="employeeId" column="employeeId"/>
+		<result property="payDate" column="payDate"/>
+		<result property="companyPay" column="companyPay"/>
+		<result property="personalPay" column="personalPay"/>
+		<association property="employee" javaType="Employee">
+			<result property="name" column="employee.name"/>
+		</association>
+	</resultMap>
+	
+	<sql id="socialSecurityColumns">
+		a.id AS "id",
+		a.employee_id AS "employeeId",
+		a.pay_date AS "payDate",
+		a.company_pay AS "companyPay",
+		a.personal_pay AS "personalPay",
+		b.name AS "employee.name"
+	</sql>
+	
+	<sql id="socialSecurityJoins">
+		LEFT JOIN employee b ON a.employee_id = b.id
+		
+	</sql>
+    
+	<select id="get" resultMap="socialSecurityResultMap">
+		SELECT 
+			<include refid="socialSecurityColumns"/>
+		FROM social_security a
+		<include refid="socialSecurityJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultMap="socialSecurityResultMap">
+		SELECT 
+			<include refid="socialSecurityColumns"/>
+		FROM social_security a
+		<include refid="socialSecurityJoins"/>
+		<where>
+			<if test="employee != null and employee.name != null and employee.name != ''">
+				AND b.name = #{employee.name}
+			</if>
+			<if test="employeeId != null and employeeId != ''">
+				AND a.employee_id = #{employeeId}
+			</if>
+			<if test="payDate != null and payDate != ''">
+				AND a.pay_date = #{payDate}
+			</if>
+			<if test="companyPay != null and companyPay != ''">
+				AND a.company_pay = #{companyPay}
+			</if>
+			<if test="personalPay != null and personalPay != ''">
+				AND a.personal_pay = #{personalPay}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultMap="socialSecurityResultMap">
+		SELECT 
+			<include refid="socialSecurityColumns"/>
+		FROM social_security a
+		<include refid="socialSecurityJoins"/>
+		<where>
+			
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO social_security(
+			employee_id,
+			pay_date,
+			company_pay,
+			personal_pay
+		) VALUES (
+			#{employeeId},
+			#{payDate},
+			#{companyPay},
+			#{personalPay}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE social_security SET 	
+			employee_id = #{employeeId},
+			pay_date = #{payDate},
+			company_pay = #{companyPay},
+			personal_pay = #{personalPay}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		DELETE FROM social_security
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
